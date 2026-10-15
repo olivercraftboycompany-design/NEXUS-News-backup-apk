@@ -1,0 +1,67 @@
+name: Update news
+
+# Keeps news.json fresh on the "data" branch (the site reads it from there).
+# GitHub's cron is best-effort and can skip for hours, so each run updates right away,
+# keeps updating every 10 minutes for ~50 minutes, then starts the next run itself.
+# The cron below is only a backstop that restarts the chain if a hand-off ever fails.
+on:
+  schedule:
+    - cron: '4,19,34,49 * * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['.github/news/**', '.github/workflows/news.yml']
+
+permissions:
+  contents: write   # push the data branch
+  actions: write    # start the next run
+
+concurrency:
+  group: update-news
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 62
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/news
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Fetch feeds and publish (every 10 min for ~50 min)
+        continue-on-error: true
+        timeout-minutes: 56
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          git config --global user.name "nexus-news-bot"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          rm -rf pub && mkdir pub
+          # keep the image cache from the last run
+          curl -fsSL "https://raw.githubusercontent.com/$REPO/data/img-cache.json" -o pub/img-cache.json || true
+          end=$(( $(date +%s) + 50*60 ))
+          n=0
+          while :; do
+            n=$((n+1))
+            echo "::group::Update $n at $(date -u +%H:%M:%SZ)"
+            if OUT_DIR=pub node .github/news/fetch.mjs; then
+              ( cd pub && rm -rf .git && git init -q -b data && git add -A && \
+                git commit -qm "news $(date -u +%Y-%m-%dT%H:%MZ)" && \
+                git push -qf "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git" data ) \
+                && echo "published" || echo "::warning::push failed"
+            else
+              echo "::warning::fetch failed"
+            fi
+            echo "::endgroup::"
+            [ $(( $(date +%s) + 10*60 )) -gt $end ] && break
+            sleep 600
+          done
+      - name: Start the next run
+        if: ${{ always() && github.ref == 'refs/heads/main' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run news.yml --repo "${{ github.repository }}" --ref main && echo "next run requested"

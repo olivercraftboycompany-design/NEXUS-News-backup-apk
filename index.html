@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>NEXUS News</title>
+<meta name="description" content="NEXUS News: top stories, world, tech, science, sports, gaming, Iowa and faith news. Auto-updating and works offline.">
+<meta name="theme-color" content="#09090b">
+<meta name="color-scheme" content="dark light">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icons/favicon.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta property="og:title" content="NEXUS News">
+<meta property="og:description" content="Auto-updating news: US, world, tech, science, sports, gaming, Iowa and faith.">
+<meta property="og:image" content="icons/icon-512.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="ptr" class="ptr" aria-hidden="true"><span class="ptr-spin"></span><span id="ptrText">Pull to refresh</span></div>
+<header class="top">
+  <div class="bar">
+    <div class="brand"><img src="icons/favicon.png" alt="" width="28" height="28"><h1>NEXUS <span>News</span></h1></div>
+    <div class="actions">
+      <button id="searchBtn" class="icon-btn" aria-label="Search">🔍</button>
+      <button id="themeBtn" class="icon-btn" aria-label="Switch light or dark">🌙</button>
+      <button id="refreshBtn" class="icon-btn" aria-label="Refresh news"><span id="refreshIco">⟳</span></button>
+    </div>
+  </div>
+  <div id="searchWrap" class="search" hidden>
+    <input id="q" type="search" placeholder="Search all news…" autocomplete="off" aria-label="Search news">
+    <button id="qClear" class="icon-btn small" aria-label="Close search">✕</button>
+  </div>
+  <nav id="tabs" class="tabs" aria-label="Categories"></nav>
+  <div class="status"><span id="dot" class="dot"></span><span id="updated">Loading news…</span><button id="installBtn" class="install" hidden>⬇ Install app</button></div>
+</header>
+<div id="offline" class="offline" hidden></div>
+<main id="main" tabindex="-1">
+  <section id="hero" class="hero" aria-label="Top stories"></section>
+  <section id="list" class="list" aria-live="polite"></section>
+  <p id="empty" class="empty" hidden></p>
+</main>
+<footer class="foot">Headlines link to the original publishers. Updated automatically every ~10 min.<br><a href="#" id="sourcesLink">Sources</a></footer>
+<dialog id="sourcesDlg" class="dlg"><h2>Sources</h2><div id="sourcesList"></div><form method="dialog"><button class="btn">Close</button></form></dialog>
+<div id="toast" class="toast" role="status" hidden></div>
+<script src="app.js" defer></script>
+</body>
+</html>
